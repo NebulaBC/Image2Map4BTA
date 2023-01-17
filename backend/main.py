@@ -1,58 +1,62 @@
 from flask import Flask, request, jsonify, send_file
 from tempfile import NamedTemporaryFile
 from amulet_nbt import *
-from io import StringIO
 from io import BytesIO
 from PIL import Image
 from ex import *
-import random
-import array
-import math
 import os
 
 app = Flask(__name__)
 
 folder = "./images/16x16"
+average_colors = {}
+
+for image_file in os.listdir(folder):
+    with Image.open(os.path.join(folder, image_file)) as img:
+        pixels = img.getdata()
+        red_sum = 0
+        green_sum = 0
+        blue_sum = 0
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+            pixels = img.getdata()
+        for r, g, b in pixels:
+            red_sum += r
+            green_sum += g
+            blue_sum += b
+        red_avg = red_sum / len(pixels)
+        green_avg = green_sum / len(pixels)
+        blue_avg = blue_sum / len(pixels)
+        average_colors[image_file] = (int(red_avg), int(green_avg), int(blue_avg))
 
 @app.route("/convert", methods=["POST"])
 def convert():
-    with NamedTemporaryFile(delete=False, mode='wb') as a:
+    with NamedTemporaryFile(delete=True, mode='wb') as a:
         dither = request.form.get('dither')
         if dither == 'true':
             dither = True
         else:
             dither = False
+        
         image_file = request.files["image"]
+        image_bytes = BytesIO(image_file.read())
+        if image_bytes.seek(0,2) > 200*1024:
+            return jsonify({"error": "File size exceeds 200KB limit."}), 400
 
         if image_file.mimetype != "image/png":
             return jsonify({"error": "Only PNG images are supported."}), 400
 
-        image_file.save(a.name)
-
-        average_colors = {}
-        image_array = []
+        try:
+            image = Image.open(image_file)
+            image.verify()
+        except Exception:
+            return jsonify({"error": "Invalid image file."}), 400
 
         if not os.listdir(folder):
-            return jsonify({"error": "The color palette folder is empty"}), 500
+            return jsonify({"error": "The color palette is empty."}), 500
 
-        for image_file in os.listdir(folder):
-            with Image.open(os.path.join(folder, image_file)) as img:
-                pixels = img.getdata()
-                red_sum = 0
-                green_sum = 0
-                blue_sum = 0
-                if img.mode != "RGB":
-                    img = img.convert("RGB")
-                    pixels = img.getdata()
-                for r, g, b in pixels:
-                    red_sum += r
-                    green_sum += g
-                    blue_sum += b
-                red_avg = red_sum / len(pixels)
-                green_avg = green_sum / len(pixels)
-                blue_avg = blue_sum / len(pixels)
-                average_colors[image_file] = (int(red_avg), int(green_avg), int(blue_avg))
-        
+        image_file.save(a.name)
+        image_array = []
 
         if dither:
             with Image.open(a.name) as original_img:
@@ -90,7 +94,7 @@ def convert():
             })
         })
 
-        with NamedTemporaryFile(delete=False, mode='wb') as f:
+        with NamedTemporaryFile(delete=True, mode='wb') as f:
             tag.save_to(
                 f.name,
                 compressed=True,
