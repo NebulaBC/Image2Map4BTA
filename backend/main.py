@@ -32,7 +32,7 @@ for image_file in os.listdir(folder):
 
 @app.route("/convert", methods=["POST"])
 def convert():
-    with NamedTemporaryFile(delete=False, mode='wb') as a:
+    with NamedTemporaryFile(delete=True, mode='wb') as a:
         dither = request.form.get('dither')
         if dither == 'true':
             dither = True
@@ -45,6 +45,15 @@ def convert():
 
         if image_file.mimetype != "image/png":
             return jsonify({"error": "Only PNG images are supported."}), 400
+
+        try:
+            image = Image.open(image_file)
+            image.verify()
+        except Exception:
+            return jsonify({"error": "Invalid image file."}), 400
+
+        if not os.listdir(folder):
+            return jsonify({"error": "The color palette is empty."}), 500
 
         image_file.save(a.name)
 
@@ -92,7 +101,7 @@ def convert():
             })
         })
 
-        with NamedTemporaryFile(delete=False, mode='wb') as f:
+        with NamedTemporaryFile(delete=True, mode='wb') as f:
             tag.save_to(
                 f.name,
                 compressed=True,
