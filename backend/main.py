@@ -46,15 +46,6 @@ def convert():
         if image_file.mimetype != "image/png":
             return jsonify({"error": "Only PNG images are supported."}), 400
 
-        try:
-            image = Image.open(image_file)
-            image.verify()
-        except Exception:
-            return jsonify({"error": "Invalid image file."}), 400
-
-        if not os.listdir(folder):
-            return jsonify({"error": "The color palette is empty."}), 500
-
         image_file.save(a.name)
 
         try:
