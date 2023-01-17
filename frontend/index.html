@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Image to map converter</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+      }
+
+      .file-input {
+        display: inline-block;
+        padding: 10px 20px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+      }
+
+      .toggle-button {
+        display: inline-block;
+        padding: 10px 20px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        cursor: pointer;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image to map converter</h1>
+    <div>
+    <input type="hidden" id="dithering-state" name="dithering-state" value="disabled">
+    <form action="http://localhost:5000/convert" method="post" enctype="multipart/form-data">
+      <input type="file" name="image">
+      </br>
+      <label for="dither">Use dithering? (Better colour quality, worse image quality)</label>
+      <input type="checkbox" id="dither" name="dither" value="true">
+      </br>
+      <button type="submit">Convert</button>
+    </form>
+  </body>
+</html>
