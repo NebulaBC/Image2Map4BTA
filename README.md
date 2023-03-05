@@ -26,4 +26,4 @@ after this you can run `gunicorn -w 2 -b 0.0.0.0:8000 app:app` to start it
 
 ## Using the application  
 if running locally: load up the index.html file in your browser.  
-if running publically: add index.html as a url on your web server (you may need to change the location of the API inside of the HTML if you're running them on different machines).
+if running publically: add index.html to your web server (you may need to change the location of the API inside of the HTML if you're running them on different machines).
