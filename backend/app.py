@@ -30,11 +30,12 @@ for image_file in os.listdir(folder):
         blue_avg = blue_sum / len(pixels)
         average_colors[image_file] = (int(red_avg), int(green_avg), int(blue_avg))
 
+
 @app.route("/convert", methods=["POST"])
 def convert():
-    with NamedTemporaryFile(delete=True, mode='wb') as a:
-        dither = request.form.get('dither')
-        if dither == 'true':
+    with NamedTemporaryFile(delete=True, mode="wb") as a:
+        dither = request.form.get("dither")
+        if dither == "true":
             dither = True
         else:
             dither = False
@@ -55,7 +56,7 @@ def convert():
             return jsonify({"error": "Invalid image file."}), 400
 
         image_array = []
-        
+
         if dither:
             with Image.open(a.name) as original_img:
                 original_img.thumbnail((128, 128))
@@ -66,7 +67,9 @@ def convert():
                 new_image = Image.new("RGB", original_img.size)
                 for y in range(height):
                     for x in range(width):
-                        closest_color_name, closest_color = find_closest_color(original_pixels[x, y], average_colors)
+                        closest_color_name, closest_color = find_closest_color(
+                            original_pixels[x, y], average_colors
+                        )
                         new_image.putpixel((x, y), closest_color)
                         image_array.append(closest_color_name.strip(".png"))
         else:
@@ -76,32 +79,39 @@ def convert():
                 original_pixels = original_img.getdata()
                 new_image = Image.new("RGB", original_img.size)
                 for i, pixel in enumerate(original_pixels):
-                    closest_color_name, closest_color = find_closest_color(pixel, average_colors)
+                    closest_color_name, closest_color = find_closest_color(
+                        pixel, average_colors
+                    )
                     new_image.putpixel((i % 128, i // 128), closest_color)
                     image_array.append(int(closest_color_name.strip(".png")))
 
-        tag = CompoundTag({
-            "data": CompoundTag({
-                "dimension": ByteTag(0),
-                "height": ShortTag(128),
-                "scale": ByteTag(3),
-                "width": ShortTag(128),
-                "xCenter": IntTag(2147483648),
-                "zCenter": IntTag(2147483648),
-                "colors": ByteArrayTag(image_array)
-            })
-        })
+        tag = CompoundTag(
+            {
+                "data": CompoundTag(
+                    {
+                        "dimension": ByteTag(0),
+                        "height": ShortTag(128),
+                        "scale": ByteTag(3),
+                        "width": ShortTag(128),
+                        "xCenter": IntTag(2147483648),
+                        "zCenter": IntTag(2147483648),
+                        "colors": ByteArrayTag(image_array),
+                    }
+                )
+            }
+        )
 
-        with NamedTemporaryFile(delete=True, mode='wb') as f:
+        with NamedTemporaryFile(delete=True, mode="wb") as f:
             tag.save_to(
                 f.name,
                 compressed=True,
                 little_endian=False,
-                string_encoder=utf8_encoder
+                string_encoder=utf8_encoder,
             )
             file_path = f.name
-        return send_file(file_path, download_name='map_0.dat', mimetype='application/octet-stream')
-
+        return send_file(
+            file_path, download_name="map_0.dat", mimetype="application/octet-stream"
+        )
 
 
 if __name__ == "__main__":
