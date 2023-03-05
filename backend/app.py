@@ -11,7 +11,7 @@ folder = "./images/16x16"
 average_colors = {}
 
 if not os.listdir(folder):
-    print("The color palette folder is empty")
+    print("The colour palette folder is empty")
 for image_file in os.listdir(folder):
     with Image.open(os.path.join(folder, image_file)) as img:
         pixels = img.getdata()
