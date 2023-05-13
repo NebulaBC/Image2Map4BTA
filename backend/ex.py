@@ -1,4 +1,4 @@
-#     gitshortener is a link shortener for github & gitlab links
+#     Image2Map4BTA is a webapp that converts images to .dat files
 #     Copyright (C) 2023 NebulaBC
 
 #     This program is free software: you can redistribute it and/or modify
